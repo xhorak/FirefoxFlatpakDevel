@@ -1,0 +1,27 @@
+#!/bin/bash
+
+CWD=`pwd`
+set -x
+if [ -z $1 ]; then
+  DIR="$HOME/m/mozilla-central/objdir-optimized/dist/bin" 
+else
+  DIR=$1
+fi
+
+echo "Using dir: $DIR, use dir as argument to override."
+
+PACKAGE_NAME=org.mozilla.FirefoxUpstreamBinary
+
+git submodule update --init --remote shared-modules
+
+MANIFEST_FILE_TEMPLATE=$PACKAGE_NAME.json.template
+MANIFEST_FILE=$PACKAGE_NAME.json
+
+rm -rf $CWD/ff-dist-bin
+mkdir $CWD/ff-dist-bin
+cp -rL $DIR/* $CWD/ff-dist-bin
+cat $MANIFEST_FILE_TEMPLATE | envsubst > $MANIFEST_FILE
+rm -rf app
+
+flatpak-builder --disable-cache --repo=repo app $MANIFEST_FILE
+flatpak build-update-repo $GPG_SETTINGS --prune --prune-depth=1 repo

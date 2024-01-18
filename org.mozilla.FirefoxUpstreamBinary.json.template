@@ -1,0 +1,127 @@
+{
+    "app-id": "org.mozilla.FirefoxUpstreamBinary",
+/*    "runtime": "org.fedoraproject.Platform",*/
+/*    "runtime-version": "f34",*/
+/*    "sdk": "org.fedoraproject.Sdk",*/
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "22.08",
+    "sdk": "org.freedesktop.Sdk",
+    "base": "org.mozilla.firefox.BaseApp",
+    "base-version": "22.08",
+    "command": "firefox",
+    "add-extensions": {
+      "org.mozilla.firefox.systemconfig": {
+        "directory" : "etc/firefox",
+        "no-autodownload": true
+      }
+    },
+    "build-options" : {
+      "strip": false,
+      "no-debuginfo": true
+    },
+    /*"tags": [""],*/
+    "desktop-file-name-suffix": " Upstream Binary",
+    "rename-desktop-file": "org.mozilla.Firefox.desktop",
+    "rename-appdata-file" : "org.mozilla.Firefox.appdata.xml",
+    "rename-icon" : "org.mozilla.Firefox",
+    "finish-args": [
+        /* X11 + XShm access */
+        "--share=ipc", "--socket=x11",
+        /* Wayland access */
+        "--socket=wayland",
+        "--socket=pcsc",
+        /* We don't want full fs access so we can read the files */
+        /* Needs to talk to the network: */
+        "--share=network",
+        /* Enable playing sound thru pulseaudio */
+        "--socket=pulseaudio",
+        /* Enable access to dri */
+        "--device=dri",
+        /* Enable themes support */
+        "--filesystem=~/.config/dconf:ro",
+        "--filesystem=/run/.heim_org.h5l.kcm-socket",
+        "--filesystem=xdg-run/dconf",
+        "--filesystem=xdg-download:rw",
+        "--env=DCONF_USER_CONFIG_DIR=.config/dconf",
+        "--env=KRB5CCNAME=KCM:",
+        "--filesystem=xdg-download",
+        "--talk-name=org.freedesktop.Notifications",
+        "--talk-name=org.freedesktop.FileManager1",
+        "--system-talk-name=org.freedesktop.NetworkManager",
+        "--talk-name=org.a11y.Bus",
+        "--talk-name=org.gnome.SessionManager",
+        "--talk-name=org.freedesktop.ScreenSaver",
+        "--talk-name=org.gtk.vfs.*",
+        "--own-name=org.mozilla.firefox.*",
+        "--own-name=org.mpris.MediaPlayer2.firefox.*",
+        "--persist=.mozilla"
+    ],
+    "modules": [
+      {     
+          "name": "dbus-glib",     
+          "cleanup": [         
+                 "*.la",         
+                 "/bin",         
+                 "/etc",         
+                 "/include",         
+                 "/libexec",         
+                 "/share/gtk-doc",         
+                 "/share/man"     
+           ],     
+           "config-opts": [         
+                 "--disable-static",   
+                 "--disable-gtk-doc"
+           ],
+           "sources": [ 
+                {             
+                   "type": "archive",            
+                   "url": "https://dbus.freedesktop.org/releases/dbus-glib/dbus-glib-0.110.tar.gz",     
+                   "sha256": "7ce4760cf66c69148f6bd6c92feaabb8812dee30846b24cd0f7395c436d7e825"   
+                }
+           ] 
+      },
+      {
+          "name": "firefox",
+          "build-options" : { "no-debuginfo": true, "strip":false }, /* Stripped rust does not work */
+          "no-autogen": true,
+          "make-install-args": ["prefix=/app"],
+          "strip": false,
+          "no-debuginfo": true,
+          "post-install": [
+              "install -d /app/etc/firefox"
+          ],
+          "sources": [
+              {
+                  "type": "dir",
+                  "path": "/home/jhorak/ff-dist-bin",
+                  "dest": "firefox"
+              },
+              {
+                  "type": "file",
+                  "path": "build-makefile",
+                  "dest-filename": "Makefile"
+              },
+              {
+                  "type": "file",
+                  "path": "org.mozilla.Firefox.appdata.xml",
+                  "dest": ""
+              },
+              {
+                  "type": "file",
+                  "path": "org.mozilla.Firefox.desktop",
+                  "dest": ""
+              },
+              {
+                  "type": "file",
+                  "path": "distribution.ini",
+                  "dest": ""
+              },
+              {
+                  "type": "file",
+                  "path": "default-preferences.js",
+                  "dest": ""
+              }
+          ]
+      }
+    ]
+}
